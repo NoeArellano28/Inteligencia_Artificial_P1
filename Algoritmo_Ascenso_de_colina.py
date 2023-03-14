@@ -1,65 +1,53 @@
 import random
 
-def randomSolution(tsp):
-    cities = list(range(len(tsp)))
-    solution = []
+# Definir el mapa de la ciudad y las ciudades que queremos visitar
+ciudades_mapa = {
+    'Cancún': {'Mérida': 320, 'Cozumel': 75, 'Playa del Carmen': 68},
+    'Mérida': {'Cancún': 320, 'Cozumel': 225, 'Playa del Carmen': 202},
+    'Cozumel': {'Cancún': 75, 'Mérida': 225, 'Playa del Carmen': 20},
+    'Playa del Carmen': {'Cancún': 68, 'Mérida': 202, 'Cozumel': 20}
+}
+ciudades = ['Cancún', 'Mérida', 'Cozumel', 'Playa del Carmen']
 
-    for i in range(len(tsp)):
-        randomCity = cities[random.randint(0, len(cities) - 1)]
-        solution.append(randomCity)
-        cities.remove(randomCity)
+# Definir la función de costo para el algoritmo Hill Climbing
+def costo(ruta):
+    distancia_total = 0
+    for i in range(len(ruta) - 1):
+        distancia_total += ciudades_mapa[ruta[i]][ruta[i + 1]]
+    return distancia_total
 
-    return solution
-
-def routeLength(tsp, solution):
-    routeLength = 0
-    for i in range(len(solution)):
-        routeLength += tsp[solution[i - 1]][solution[i]]
-    return routeLength
-
-def getNeighbours(solution):
-    neighbours = []
-    for i in range(len(solution)):
-        for j in range(i + 1, len(solution)):
-            neighbour = solution.copy()
-            neighbour[i] = solution[j]
-            neighbour[j] = solution[i]
-            neighbours.append(neighbour)
-    return neighbours
-
-def getBestNeighbour(tsp, neighbours):
-    bestRouteLength = routeLength(tsp, neighbours[0])
-    bestNeighbour = neighbours[0]
-    for neighbour in neighbours:
-        currentRouteLength = routeLength(tsp, neighbour)
-        if currentRouteLength < bestRouteLength:
-            bestRouteLength = currentRouteLength
-            bestNeighbour = neighbour
-    return bestNeighbour, bestRouteLength
-
-def hillClimbing(tsp):
-    currentSolution = randomSolution(tsp)
-    currentRouteLength = routeLength(tsp, currentSolution)
-    neighbours = getNeighbours(currentSolution)
-    bestNeighbour, bestNeighbourRouteLength = getBestNeighbour(tsp, neighbours)
-
-    while bestNeighbourRouteLength < currentRouteLength:
-        currentSolution = bestNeighbour
-        currentRouteLength = bestNeighbourRouteLength
-        neighbours = getNeighbours(currentSolution)
-        bestNeighbour, bestNeighbourRouteLength = getBestNeighbour(tsp, neighbours)
-
-    return currentSolution, currentRouteLength
-
-def main():
-    tsp = [
-        [0, 400, 500, 300],
-        [400, 0, 300, 500],
-        [500, 300, 0, 400],
-        [300, 500, 400, 0]
-    ]
-
-    print(hillClimbing(tsp))
-
-if __name__ == "__main__":
-    main()
+# Definir la función Hill Climbing
+def hill_climbing():
+    # Inicializar la ruta aleatoria
+    ruta_actual = random.sample(ciudades, len(ciudades))
+    costo_actual = costo(ruta_actual)
+    
+    # Iterar hasta que no se pueda mejorar más la ruta
+    while True:
+        # Encontrar todas las rutas vecinas
+        vecinos = []
+        for i in range(len(ciudades)):
+            for j in range(i + 1, len(ciudades)):
+                vecino = ruta_actual.copy()
+                vecino[i], vecino[j] = vecino[j], vecino[i]
+                vecinos.append(vecino)
+        
+        # Evaluar el costo de cada ruta vecina y seleccionar la mejor
+        mejor_vecino = vecinos[0]
+        mejor_costo = costo(mejor_vecino)
+        for vecino in vecinos:
+            vecino_costo = costo(vecino)
+            if vecino_costo < mejor_costo:
+                mejor_vecino = vecino
+                mejor_costo = vecino_costo
+        
+        # Si no se puede mejorar más la ruta, regresar la mejor solución encontrada
+        if mejor_costo >= costo_actual:
+            return ruta_actual
+        
+        # De lo contrario, actualizar la ruta actual y continuar buscando
+        ruta_actual = mejor_vecino
+        costo_actual = mejor_costo
+        
+ruta_optima = hill_climbing()
+print(ruta_optima)
